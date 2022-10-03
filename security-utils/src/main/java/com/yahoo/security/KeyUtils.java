@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -30,10 +31,17 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.XECPrivateKey;
+import java.security.interfaces.XECPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.NamedParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.XECPrivateKeySpec;
+import java.security.spec.XECPublicKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static com.yahoo.security.KeyAlgorithm.EC;
@@ -145,6 +153,68 @@ public class KeyUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static XECPublicKey fromRawX25519PublicKey(byte[] rawKeyBytes) {
+        try {
+            NamedParameterSpec paramSpec = new NamedParameterSpec("X25519");
+            KeyFactory keyFactory        = KeyFactory.getInstance("XDH");
+            BigInteger pubU              = new BigInteger(rawKeyBytes);
+            return (XECPublicKey) keyFactory.generatePublic(new XECPublicKeySpec(paramSpec, pubU));
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Returns the bytes representing the BigInteger of the X25519 public key EC point U coordinate */
+    static byte[] toRawX25519PublicKeyBytes(XECPublicKey publicKey) {
+        return publicKey.getU().toByteArray();
+    }
+
+    public static XECPublicKey fromBase64EncodedX25519PublicKey(String base64pk) {
+        byte[] rawKeyBytes = Base64.getUrlDecoder().decode(base64pk);
+        return fromRawX25519PublicKey(rawKeyBytes);
+    }
+
+    static String toBase64EncodedX25519PublicKey(XECPublicKey publicKey) {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(toRawX25519PublicKeyBytes(publicKey));
+    }
+
+    static XECPrivateKey fromRawX25519PrivateKey(byte[] rawScalarBytes) {
+        try {
+            NamedParameterSpec paramSpec = new NamedParameterSpec("X25519");
+            KeyFactory keyFactory        = KeyFactory.getInstance("XDH");
+            return (XECPrivateKey) keyFactory.generatePrivate(new XECPrivateKeySpec(paramSpec, rawScalarBytes));
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static byte[] toRawX25519PrivateKeyBytes(XECPrivateKey privateKey) {
+        var maybeScalar = privateKey.getScalar();
+        if (maybeScalar.isPresent()) {
+            return maybeScalar.get();
+        }
+        throw new IllegalArgumentException("Could not extract scalar representation of X25519 private key. " +
+                                           "It might be a hardware-protected private key.");
+    }
+
+    public static XECPrivateKey fromBase64EncodedX25519PrivateKey(String base64pk) {
+        byte[] rawKeyBytes = Base64.getUrlDecoder().decode(base64pk);
+        return fromRawX25519PrivateKey(rawKeyBytes);
+    }
+
+    static String toBase64EncodedX25519PrivateKey(XECPrivateKey privateKey) {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(toRawX25519PrivateKeyBytes(privateKey));
+    }
+
+    // TODO unify with generateKeypair()
+    public static KeyPair generateX25519KeyPair() {
+        try {
+            return KeyPairGenerator.getInstance("X25519").generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.XECPrivateKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -80,6 +81,22 @@ public class KeyUtilsTest {
         PrivateKey deserializedKey = KeyUtils.fromPemEncodedPrivateKey(pem);
         assertEquals(keyPair.getPrivate(), deserializedKey);
         assertEquals(keyAlgorithm.getAlgorithmName(), deserializedKey.getAlgorithm());
+    }
+
+    @Test
+    void x25519_public_key_is_preserved_across_encoding_roundtrip() {
+        var pubKeyBase64Str = "NjYQqbfDXy_mijXNayO68ayHykNNyKEkcNlsnZv1iXU";
+        var pk = KeyUtils.fromBase64EncodedX25519PublicKey(pubKeyBase64Str);
+        assertEquals(pk.getAlgorithm(), "XDH");
+        assertEquals(KeyUtils.toBase64EncodedX25519PublicKey(pk), pubKeyBase64Str);
+    }
+
+    @Test
+    void x25519_private_key_is_preserved_across_encoding_roundtrip() {
+        var privKeyBase64Str = "XQY7mIzO6R9fezMmJL0yTPKDOW8wfa-ZS5CtQ7OMgQA";
+        var pk = KeyUtils.fromBase64EncodedX25519PrivateKey(privKeyBase64Str);
+        assertEquals(pk.getAlgorithm(), "XDH");
+        assertEquals(KeyUtils.toBase64EncodedX25519PrivateKey(pk), privKeyBase64Str);
     }
 
 }
