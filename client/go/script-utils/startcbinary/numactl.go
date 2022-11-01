@@ -12,7 +12,7 @@ import (
 	"github.com/vespa-engine/vespa/client/go/util"
 )
 
-func (p *ProgSpec) configureNumaCtl() {
+func (p *ProgSpec) ConfigureNumaCtl() {
 	p.shouldUseNumaCtl = false
 	p.numaSocket = -1
 	if p.getenv(ENV_VESPA_NO_NUMACTL) != "" {

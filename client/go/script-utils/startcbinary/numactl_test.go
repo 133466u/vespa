@@ -31,16 +31,16 @@ func TestNumaCtlDetection(t *testing.T) {
 	spec := NewProgSpec(orig)
 
 	useMock("no-numactl", "numactl")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, false, spec.shouldUseNumaCtl)
 
 	useMock("bad-numactl", "numactl")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, false, spec.shouldUseNumaCtl)
 
 	t.Setenv("VESPA_AFFINITY_CPU_SOCKET", "")
 	useMock("good-numactl", "numactl")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, true, spec.shouldUseNumaCtl)
 	assert.Equal(t, -1, spec.numaSocket)
 	argv := spec.prependNumaCtl(orig)
@@ -54,7 +54,7 @@ func TestNumaCtlDetection(t *testing.T) {
 	assert.Equal(t, "cfgid", argv[5])
 
 	t.Setenv("VESPA_AFFINITY_CPU_SOCKET", "0")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, true, spec.shouldUseNumaCtl)
 	assert.Equal(t, 0, spec.numaSocket)
 	argv = spec.prependNumaCtl(orig)
@@ -68,7 +68,7 @@ func TestNumaCtlDetection(t *testing.T) {
 	assert.Equal(t, "cfgid", argv[5])
 
 	t.Setenv("VESPA_AFFINITY_CPU_SOCKET", "1")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, true, spec.shouldUseNumaCtl)
 	assert.Equal(t, 1, spec.numaSocket)
 	argv = spec.prependNumaCtl(orig)
@@ -82,7 +82,7 @@ func TestNumaCtlDetection(t *testing.T) {
 	assert.Equal(t, "cfgid", argv[5])
 
 	t.Setenv("VESPA_AFFINITY_CPU_SOCKET", "2")
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	assert.Equal(t, true, spec.shouldUseNumaCtl)
 	assert.Equal(t, 0, spec.numaSocket)
 

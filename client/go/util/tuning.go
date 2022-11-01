@@ -20,10 +20,12 @@ func OptionallyReduceTimerFrequency() {
 		backticks := BackTicksIgnoreStderr
 		out, _ := backticks.Run("uname", "-r")
 		if strings.Contains(out, "linuxkit") {
-			trace.Trace(
-				"Running docker on macos.",
-				"Reducing base frequency from 1000hz to 100hz due to high cost of sampling time.",
-				"This will reduce timeout accuracy.")
+			if os.Getenv(ENV_VESPA_TIMER_HZ) != "100" {
+				trace.Trace(
+					"Running docker on macos.",
+					"Reducing base frequency from 1000hz to 100hz due to high cost of sampling time.",
+					"This will reduce timeout accuracy.")
+			}
 			os.Setenv(ENV_VESPA_TIMER_HZ, "100")
 		}
 	}
@@ -49,15 +51,15 @@ func TuneResourceLimits() {
 	SetResourceLimit(RLIMIT_NPROC, numprocs)
 }
 
-func GetThpSizeMb() int {
+func GetThpSizeKb() int {
 	const fn = "/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
-	thp_size := 2
+	thp_size := 2048
 	line, err := os.ReadFile(fn)
 	if err == nil {
 		chomped := strings.TrimSuffix(string(line), "\n")
 		number, err := strconv.Atoi(chomped)
 		if err == nil {
-			thp_size = number / (1024 * 1024)
+			thp_size = number / 1024
 			trace.Trace("thp_size", chomped, "=>", thp_size)
 		} else {
 			trace.Trace("no thp_size:", err)

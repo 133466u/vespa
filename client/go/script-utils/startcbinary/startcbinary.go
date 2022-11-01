@@ -15,11 +15,11 @@ func startCbinary(spec *ProgSpec) int {
 	spec.configurePath()
 	spec.configureTuning()
 	spec.configureValgrind()
-	spec.configureNumaCtl()
+	spec.ConfigureNumaCtl()
 	spec.configureHugePages()
 	spec.configureUseMadvise()
 	spec.configureVespaMalloc()
-	err := spec.run()
+	err := spec.Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
@@ -28,7 +28,7 @@ func startCbinary(spec *ProgSpec) int {
 	}
 }
 
-func (spec *ProgSpec) run() error {
+func (spec *ProgSpec) Run() error {
 	prog := spec.Program
 	args := spec.Args
 	if spec.shouldUseValgrind {
