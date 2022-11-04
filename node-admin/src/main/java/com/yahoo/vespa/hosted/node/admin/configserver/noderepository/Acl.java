@@ -66,6 +66,9 @@ public class Acl {
             rules.add("-A INPUT -p tcp -m multiport --dports " + joinPorts(trustedPorts) + " -j ACCEPT");
         }
 
+        // Wireguard lol?
+        rules.add("-A INPUT -p udp -m udp --dport 51820 -j ACCEPT");
+
         // Allow traffic from trusted nodes, limited to specific ports, if any
         getTrustedNodes(ipVersion).stream()
                                   .map(node -> {
